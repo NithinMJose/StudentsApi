@@ -28,6 +28,46 @@ app.UseHttpsRedirection();
 
 app.MapGet("/Students", async (DataContext context) => await context.Students.ToListAsync());
 
-app.MapGet("/", () => "Hello World!");
+
+
+app.MapGet("/Students/{id}", async (DataContext context, int id) => {
+    var student = await context.Students.FindAsync(id);
+    if (student == null)
+    {
+        return Results.NotFound();
+    }
+    return Results.Ok(student);
+});
+
+app.MapPost("/Students", async (DataContext context, Student student) => {
+    context.Students.Add(student);
+    await context.SaveChangesAsync();
+    return Results.Created($"/Students/{student.Id}", student);
+});
+
+
+app.MapPut("/Students/{id}", async (DataContext context, int id, Student student) => {
+    if (id != student.Id)
+    {
+        return Results.BadRequest();
+    }
+    context.Entry(student).State = EntityState.Modified;
+    await context.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+app.MapDelete("/Students/{id}", async (DataContext context, int id) => {
+    var student = await context.Students.FindAsync(id);
+    if (student == null)
+    {
+        return Results.NotFound();
+    }
+    context.Students.Remove(student);
+    await context.SaveChangesAsync();
+    return Results.NoContent();
+});
+
+
+
 
 app.Run();
